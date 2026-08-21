@@ -1,0 +1,141 @@
+# ---------------------------------------------------------------------------
+# baremo.yml — perfil de evaluación de un repositorio
+#
+# Este archivo vive en el repositorio EVALUADO, no dentro de Baremo. Es el
+# contrato de la corrida: qué se compromete a mirar, qué se excluye y por qué,
+# y con cuánto peso cuenta cada control.
+#
+#   baremo evaluar .                    # busca ./baremo.yml
+#   baremo evaluar . --config otro.yml  # perfil explícito
+#
+# Regla de lectura: todo lo que aparece aquí SE IMPRIME en el encabezado del
+# reporte. No hay configuración silenciosa.
+# ---------------------------------------------------------------------------
+
+# Versión del formato de este archivo. Baremo se niega a leer un formato que no
+# conoce en vez de adivinar los campos que faltan.
+version: 1
+
+# Identidad de lo evaluado. El entorno es un DATO del reporte: dos corridas de
+# entornos distintos no se promedian ni se comparan sin decirlo.
+proyecto: "<app>"
+entorno: "<entorno>"          # p. ej. desarrollo | pruebas | produccion
+
+# ---------------------------------------------------------------------------
+# Umbral de cobertura
+# ---------------------------------------------------------------------------
+# Por debajo de este valor, el cumplimiento NO SE PUBLICA: el reporte imprime
+# la cobertura, el motivo de la retención y la lista nominal de lo que faltó,
+# y el proceso termina con código de salida 2 (corrida incompleta).
+#
+# 0.80 es el valor por defecto de la herramienta (UMBRAL_COBERTURA_POR_DEFECTO).
+# Subirlo es endurecer la exigencia; bajarlo por debajo de ~0.70 hace que la
+# nota vuelva a ser comparable con "casi no miré", que es justo el defecto que
+# Baremo existe para cerrar.
+umbral_cobertura: 0.80
+
+# ---------------------------------------------------------------------------
+# Alcance — el universo que esta corrida se compromete a mirar
+# ---------------------------------------------------------------------------
+# El identificador es "<tipo>:<nombre>" y debe ser ESTABLE entre corridas: si
+# cambia el nombre cambia el sujeto, y la tendencia deja de significar nada.
+#
+# Todo lo declarado que no se mida NI se excluya cuenta como cobertura perdida
+# (`omitido_sin_declarar`). Ésa es la mecánica que impide que recortar la
+# mirada suba el número: recortar la mirada lo BAJA.
+alcance:
+  declarado:
+    - "repositorio:<app>"
+    - "rama:main"
+    - "pipeline:api"
+    - "pipeline:workers"
+    - "pipeline:frontend"
+    - "paquete:api"
+    - "paquete:workers"
+    - "paquete:frontend"
+    - "plantilla:red"
+    - "plantilla:datos"
+    - "plantilla:computo"
+    - "runbook:principal"
+
+  # Excluir NO es gratis: exige motivo escrito, y el motivo se imprime en el
+  # encabezado del reporte junto al sujeto excluido. Un motivo que no aguanta
+  # ser leído en una revisión no es un motivo.
+  #
+  # Un sujeto excluido sale del denominador de la cobertura; uno omitido sin
+  # declarar, no. Ésa es toda la diferencia, y es deliberada: declarar cuesta
+  # una línea, omitir cuesta puntos.
+  excluido:
+    "paquete:docs-sitio": "sitio estático de documentación; no tiene cadena de construcción ni artefacto desplegable"
+    "plantilla:arranque": "plantilla de arranque del motor de IaC, propiedad del equipo de plataforma; no la mantiene este repositorio"
+
+# ---------------------------------------------------------------------------
+# Sondas — qué controles corren en esta corrida
+# ---------------------------------------------------------------------------
+# Patrones glob sobre el identificador del check ("<eje>.<check>").
+# Si se omite el bloque completo, corren TODAS las sondas registradas.
+#
+# Cuidado con `excluir`: apagar una sonda no hace desaparecer sus sujetos del
+# alcance declarado. Si apagas `iac.*` y dejaste las plantillas en `declarado`,
+# esas plantillas cuentan como omitidas y la cobertura baja. Es el
+# comportamiento correcto: apagar el control no es lo mismo que no tenerlo.
+sondas:
+  incluir:
+    - "procedencia.*"
+    - "entrega.*"
+    - "seguridad.*"
+    - "iac.*"
+    - "pruebas.*"
+    - "operacion.*"
+  excluir: []
+
+# ---------------------------------------------------------------------------
+# Pesos — ponderación explícita por riesgo
+# ---------------------------------------------------------------------------
+# Peso por defecto: 1.0. Se declara sólo lo que se aparta del default.
+#
+# Existe porque sin ponderación el promedio permite COMPRAR el control crítico
+# con controles triviales: tres runbooks impecables tapan un gate de seguridad
+# que no detiene nada. El peso es una decisión de la organización y por eso
+# vive aquí, versionado y visible, no dentro del código de la herramienta.
+pesos:
+  seguridad.gate-bloqueante-por-severidad: 3.0
+  seguridad.sast-en-la-cadena: 2.0
+  seguridad.sca-en-la-cadena: 2.0
+  entrega.compuerta-antes-de-produccion: 2.0
+  iac.sin-secretos-en-parametros: 2.0
+  operacion.enlaces-del-runbook: 0.5
+
+# ---------------------------------------------------------------------------
+# Parámetros de las sondas que miden TASAS sobre una ventana temporal
+# ---------------------------------------------------------------------------
+# La ventana es un dato declarado y se imprime en el reporte. Sin ventana
+# explícita, una tasa no es reproducible: la misma corrida da distinto la
+# semana siguiente y nadie sabe si mejoró la práctica o cambió el periodo.
+ventanas:
+  # Días hacia atrás para `procedencia.commits-con-identificador`.
+  commits_dias: 90
+  # Rama de referencia. Se mide contra la rama REMOTA canónica, no contra la
+  # copia local, para que dos personas obtengan el mismo número.
+  rama_canonica: "origin/main"
+
+# ---------------------------------------------------------------------------
+# Supresiones — excepciones declaradas
+# ---------------------------------------------------------------------------
+# Ruta relativa a este archivo. Ver examples/supresiones.yml.
+# Las supresiones viven en el repositorio EVALUADO, nunca dentro del
+# verificador: una excepción escondida en el código de la herramienta se aplica
+# a todo el mundo, sobrevive a quien la autorizó y no vence jamás.
+supresiones: "supresiones.yml"
+
+# ---------------------------------------------------------------------------
+# Salida
+# ---------------------------------------------------------------------------
+# El formato de datos (json) es la salida primaria: el render de consola se
+# calcula del MISMO registro que la nota, para que quien lea la tabla pueda
+# recalcular el porcentaje sumando lo que ve.
+salida:
+  formato:
+    - "consola"
+    - "json"
+  ruta: "reportes/"

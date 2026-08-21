@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "baremo"
+version = "0.1.0"
+description = "Evaluador de madurez de ingenieria que publica DOS numeros: cumplimiento y cobertura."
+requires-python = ">=3.12"
+license = "MIT"
+authors = [{ name = "Baremo" }]
+keywords = [
+    "madurez",
+    "scorecard",
+    "cobertura",
+    "auditoria",
+    "evidencia",
+    "devops",
+]
+dependencies = [
+    "PyYAML>=6.0",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Natural Language :: Spanish",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: System :: Systems Administration",
+    "Typing :: Typed",
+]
+
+[project.scripts]
+baremo = "baremo.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+include = ["baremo*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

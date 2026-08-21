@@ -1,0 +1,77 @@
+# ---------------------------------------------------------------------------
+# supresiones.yml — excepciones declaradas
+#
+# Vive en el repositorio EVALUADO, junto a baremo.yml. Nunca dentro del código
+# del verificador: una lista blanca escondida en la herramienta se aplica a
+# todos los proyectos, sobrevive a quien la autorizó y no caduca jamás.
+#
+# Una supresión NO borra el sujeto. Lo mueve a la columna SUPR del reporte y lo
+# lista aparte con su justificación completa, su autorizador y su vencimiento.
+# Siempre se sabe cuánto del cumplimiento viene de cumplir y cuánto de excepción.
+#
+# Campos, todos obligatorios (ver `Supresion` en baremo/model.py):
+#   subcheck_id     · identificador del check suprimido ("<eje>.<check>")
+#   sujeto          · el sujeto concreto; NO se admite comodín
+#   justificacion   · el motivo, escrito para ser leído en voz alta
+#   vence           · fecha ISO. Sin vencimiento es una lista blanca, no una excepción
+#   autorizada_por  · quién responde por ella. Un rol o un equipo con nombre
+#
+# Regla dura: una supresión VENCIDA no se silencia ni se renueva sola. Deja de
+# aplicarse, el sujeto vuelve a contar como lo que sea, y el reporte la imprime
+# como vencida. Ese es el mecanismo: la excepción caduca, la deuda reaparece.
+# ---------------------------------------------------------------------------
+
+supresiones:
+
+  # -------------------------------------------------------------------------
+  # (1) VIGENTE — el control existe, pero no es observable desde este árbol
+  # -------------------------------------------------------------------------
+  # Caso legítimo de supresión: el control SÍ se cumple, la sonda no puede
+  # verlo, y afirmar `CUMPLE` sin evidencia sería exactamente lo que Baremo
+  # prohíbe. La alternativa honesta sin esta supresión sería `NO_MEDIBLE`, que
+  # cuesta cobertura. La supresión traslada esa decisión a una persona con
+  # nombre y con fecha, en vez de dejarla en el criterio de la herramienta.
+  - subcheck_id: "seguridad.sast-en-la-cadena"
+    sujeto: "pipeline:backend"
+    justificacion: >
+      El análisis estático de este componente NO corre en la cadena declarada en
+      este repositorio: lo dispara la plataforma de análisis de la organización,
+      sobre una copia del código, en su propia programación semanal. La sonda
+      lee la definición del pipeline y ahí no hay etapa de SAST, por lo que sin
+      esta supresión el resultado sería NO_MEDIBLE. La evidencia del escaneo se
+      consulta en el tablero de la plataforma, con el identificador del perfil
+      registrado en el runbook. Vence al cierre del año fiscal: para entonces la
+      etapa debe estar dentro del pipeline o esta excepción se renueva por
+      escrito, no por omisión.
+    vence: 2026-12-31
+    autorizada_por: "equipo-de-seguridad"
+
+  # -------------------------------------------------------------------------
+  # (2) VENCIDA A PROPÓSITO — para demostrar qué hace Baremo con ella
+  # -------------------------------------------------------------------------
+  # Esta supresión venció el 2026-05-31. Baremo NO la aplica y NO la esconde:
+  # el sujeto `pipeline:workers` vuelve a evaluarse contra la sonda, y la
+  # excepción aparece en el reporte con la marca de vencida y los días que
+  # lleva caducada.
+  #
+  #   SUPRESIONES VENCIDAS (1)
+  #     entrega.compuerta-antes-de-produccion · sujeto pipeline:workers
+  #       venció 2026-05-31 (hace 82 días) · autorizó: comité-de-cambios
+  #       el sujeto vuelve a contar: NO_CUMPLE
+  #
+  # Es el comportamiento completo del mecanismo. Un scorecard tradicional
+  # borraría la línea del reporte —o peor, la seguiría aplicando— y la deuda
+  # desaparecería sin que nadie la hubiera pagado. Aquí la deuda reaparece
+  # sola, en la fecha que alguien firmó, y la nota lo refleja.
+  - subcheck_id: "entrega.compuerta-antes-de-produccion"
+    sujeto: "pipeline:workers"
+    justificacion: >
+      Excepción temporal durante la migración del despliegue de los procesos en
+      segundo plano: mientras se estabilizaba la nueva cadena, el paso a
+      producción se ejecutaba sin compuerta de aprobación para poder revertir en
+      minutos. Se acordó una ventana de dos meses, y el compromiso era cablear
+      la compuerta antes del vencimiento. La fecha pasó. Esta entrada se deja
+      aquí a propósito, sin renovar, para que el reporte la muestre como lo que
+      es: deuda vencida, no una excepción vigente.
+    vence: 2026-05-31
+    autorizada_por: "comite-de-cambios"

@@ -1,0 +1,70 @@
+# --- Python ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Empaquetado / distribución
+build/
+dist/
+sdist/
+wheels/
+*.egg
+*.egg-info/
+.eggs/
+MANIFEST
+pip-wheel-metadata/
+
+# --- Entornos virtuales ---------------------------------------------------
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+# --- Pruebas y herramientas -----------------------------------------------
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.hypothesis/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.cache/
+
+# --- Editores y sistemas operativos ---------------------------------------
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Reportes generados por Baremo ----------------------------------------
+# La salida de una corrida NO se versiona: se estampa con fecha, versión de la
+# herramienta y huella del catálogo, así que un reporte commiteado envejece
+# mal y se lee como si fuera el estado actual. Si hace falta tendencia, se
+# guarda en el almacén de corridas, no en el árbol del repositorio.
+reportes/
+*.report.json
+*.report.html
+reporte.json
+reporte.html
+baremo-*.json
+baremo-*.html
+
+# --- Configuración local de la corrida ------------------------------------
+# El perfil compartido (baremo.yml) SÍ se versiona. Las variantes locales para
+# probar un umbral o apagar una sonda, no: si el perfil local se cuela al
+# repositorio, dos personas miden cosas distintas creyendo que miden lo mismo.
+baremo.local.yml
+supresiones.local.yml
