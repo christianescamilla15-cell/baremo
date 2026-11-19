@@ -356,4 +356,5 @@ from baremo.probes import (  # noqa: E402,F401
     analisis,
     api,
     publicacion,
+    pruebas,
 )
