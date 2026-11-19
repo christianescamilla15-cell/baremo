@@ -41,6 +41,7 @@ __all__ = [
     "evidencia_de_ausencia",
     "recortar",
     "lineas_que_casan",
+    "sujeto_de",
 ]
 
 # --------------------------------------------------------------------------
@@ -253,6 +254,18 @@ def subcheck(
     )
 
 
+def sujeto_de(ctx: Contexto, tipo: str, nombre: str) -> str:
+    """Sujeto de un sub-check por ELEMENTO: `<sujeto>/<tipo>:<nombre>`.
+
+    Las sondas que emiten un sub-check por elemento (una operación, una regla, un
+    nivel C4) nombran así al elemento. Lleva el nombre del sujeto delante porque en
+    una corrida con varios repositorios los sub-checks de todos conviven en el mismo
+    check, y una supresión declarada para `api/operacion:GET /x` de un repositorio
+    no debe tapar la del otro.
+    """
+    return f"{ctx.nombre_sujeto}/{tipo}:{nombre}"
+
+
 def evidencia_linea(ctx: Contexto, ruta: Path, numero: int, linea: str,
                     detalle: str = "") -> Evidencia:
     """Evidencia puntual: archivo, número de línea y el fragmento visto."""
@@ -338,3 +351,6 @@ def registrar(id_sonda: str) -> Callable[[type[Sonda]], type[Sonda]]:
 # Importar al FINAL: los módulos hermanos hacen `from baremo.probes import Sonda`
 # y para entonces el paquete ya tiene definidos el registro y las utilidades.
 from baremo.probes import ci, documentacion, entrega, seguridad, vcs  # noqa: E402,F401
+from baremo.probes import (  # noqa: E402,F401
+    arquitectura,
+)
