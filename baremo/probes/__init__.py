@@ -354,4 +354,5 @@ from baremo.probes import ci, documentacion, entrega, seguridad, vcs  # noqa: E4
 from baremo.probes import (  # noqa: E402,F401
     arquitectura,
     analisis,
+    publicacion,
 )
