@@ -27,10 +27,14 @@ no se puede medir** — el tercero es el que suele faltar y es el que protege la
 ## Añadir una sonda
 
 1. Crea el módulo en `baremo/probes/` (uno por eje, o uno por sonda si es grande).
-2. Registra la función con `@registrar(id=..., titulo=..., eje=..., peso=...)`.
-3. Devuelve un `ResultadoCheck` con **un `ResultadoSubcheck` por cada sujeto observado**.
-4. Documenta la sonda en la tabla de `README.md` (eje · check · qué evalúa · sujeto).
-5. Agrega las pruebas: conforme, no conforme, no medible.
+2. Declara una clase que herede de `Sonda` y regístrala con `@registrar("<eje>.<check>")`; su
+   método `evaluar(ctx)` devuelve un `ResultadoCheck`.
+3. Emite **un sub-check por cada sujeto observado**, construido con `subcheck()` (que rechaza un
+   veredicto sin evidencia o un `NO_MEDIBLE` sin motivo) y nombrado con `sujeto_de()`.
+4. Documenta la sonda en la tabla de `README.md` (eje · sonda · qué evalúa · sujeto); una prueba
+   falla si una sonda registrada no aparece ahí.
+5. Agrega las pruebas: conforme, no conforme, no medible. Si la sonda materializa una regla de
+   negocio, agrégala a `docs/reglas.md` con sus pruebas.
 
 El ejemplo mínimo completo está en la sección «Escribir tu propia sonda» del `README.md`.
 

@@ -1,0 +1,94 @@
+{
+  "resumen": {
+    "cobertura": 0.9545,
+    "cumplimiento": 0.6032,
+    "publicable": true,
+    "totales": {
+      "checks": 16,
+      "cumple": 27,
+      "medibles": 42,
+      "no_cumple": 15,
+      "no_medible": 2,
+      "subchecks": 44,
+      "suprimido": 0
+    }
+  },
+  "veredictos": {
+    "api.openapi-documentada": {
+      "API_OPERACION @ repo-golden/operacion:openapi.yaml#GET /saldo": "CUMPLE",
+      "API_OPERACION @ repo-golden/operacion:openapi.yaml#POST /saldo": "NO_CUMPLE"
+    },
+    "ci": {
+      "CI_ACCIONES_ANCLADAS @ repo-golden": "CUMPLE",
+      "CI_CORRE_PRUEBAS @ repo-golden": "CUMPLE",
+      "CI_EXISTE_PIPELINE @ repo-golden": "CUMPLE",
+      "CI_SIN_SECRETOS_EN_CLARO @ repo-golden": "CUMPLE"
+    },
+    "documentacion": {
+      "DOC_ARRANQUE @ repo-golden": "CUMPLE",
+      "DOC_DECISIONES @ repo-golden": "CUMPLE",
+      "DOC_LICENCIA @ repo-golden": "CUMPLE",
+      "DOC_README @ repo-golden": "NO_CUMPLE"
+    },
+    "documentacion.adr": {
+      "ADR_COMPLETO @ repo-golden/adr:0001-usar-sqlite": "CUMPLE"
+    },
+    "documentacion.arquitectura-c4": {
+      "C4_NIVEL @ repo-golden/c4:componentes": "NO_CUMPLE",
+      "C4_NIVEL @ repo-golden/c4:contenedores": "NO_CUMPLE",
+      "C4_NIVEL @ repo-golden/c4:contexto": "CUMPLE"
+    },
+    "documentacion.licencia": {
+      "LICENCIA_ARCHIVO @ repo-golden/licencia:archivo": "CUMPLE",
+      "LICENCIA_MANIFIESTO @ repo-golden/licencia:pyproject.toml": "CUMPLE"
+    },
+    "documentacion.politica-de-seguridad": {
+      "POLITICA_ADAPTADA @ repo-golden/politica:adaptada": "NO_CUMPLE",
+      "POLITICA_CANAL @ repo-golden/politica:canal": "CUMPLE",
+      "POLITICA_PLAZO @ repo-golden/politica:plazo": "NO_CUMPLE"
+    },
+    "documentacion.readme-estandar": {
+      "README_ARQUITECTURA @ repo-golden/readme:arquitectura": "NO_CUMPLE",
+      "README_EJECUTAR @ repo-golden/readme:ejecutar": "CUMPLE",
+      "README_INSIGNIA_CI @ repo-golden/readme:insignia-ci": "CUMPLE",
+      "README_INSIGNIA_SEGURIDAD @ repo-golden/readme:insignia-seguridad": "CUMPLE",
+      "README_LICENCIA @ repo-golden/readme:licencia": "CUMPLE",
+      "README_PRUEBAS @ repo-golden/readme:pruebas": "CUMPLE",
+      "README_SEGURIDAD @ repo-golden/readme:seguridad": "NO_CUMPLE"
+    },
+    "entrega": {
+      "ENT_CONTENEDOR @ repo-golden": "CUMPLE",
+      "ENT_IAC @ repo-golden": "NO_CUMPLE",
+      "ENT_IMAGEN_NO_ROOT @ repo-golden": "CUMPLE",
+      "ENT_SALUD @ repo-golden": "CUMPLE"
+    },
+    "entrega.check-que-analiza": {
+      "ANALISIS_VERIFICADO @ repo-golden/job:.github/workflows/ci.yml#pruebas": "NO_CUMPLE"
+    },
+    "pruebas.e2e-presente": {
+      "E2E_ARCHIVO @ repo-golden/e2e:suite": "NO_CUMPLE"
+    },
+    "pruebas.paridad-golden": {
+      "GOLDEN_COMPARADO @ repo-golden/golden:tests/golden/saldo.json": "CUMPLE"
+    },
+    "pruebas.regla-por-prueba": {
+      "REGLA_CON_PRUEBA @ repo-golden/regla:R1": "CUMPLE",
+      "REGLA_CON_PRUEBA @ repo-golden/regla:R2": "NO_CUMPLE"
+    },
+    "seguridad": {
+      "SEC_ANALISIS_ESTATICO @ repo-golden": "CUMPLE",
+      "SEC_ESCANEO_DEPENDENCIAS @ repo-golden": "NO_CUMPLE",
+      "SEC_POLITICA @ repo-golden": "CUMPLE",
+      "SEC_PROCESO_EXCEPCIONES @ repo-golden": "NO_CUMPLE"
+    },
+    "seguridad.confidencialidad": {
+      "CONFIDENCIALIDAD @ repo-golden": "NO_MEDIBLE"
+    },
+    "vcs": {
+      "VCS_CODEOWNERS @ repo-golden": "NO_CUMPLE",
+      "VCS_GITIGNORE @ repo-golden": "CUMPLE",
+      "VCS_RAMA_DEFECTO @ repo-golden": "NO_MEDIBLE",
+      "VCS_SIN_SECRETOS @ repo-golden": "CUMPLE"
+    }
+  }
+}

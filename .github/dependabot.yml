@@ -1,0 +1,12 @@
+version: 2
+updates:
+  # requirements.txt y requirements-dev.txt fijan cada versión; Dependabot propone las nuevas por PR.
+  - package-ecosystem: pip
+    directory: /
+    schedule: { interval: weekly }
+    cooldown: { default-days: 7 }
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    cooldown: { default-days: 7 }
