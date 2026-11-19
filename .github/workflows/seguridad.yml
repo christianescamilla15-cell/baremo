@@ -1,0 +1,139 @@
+# Seguridad (N04, N05, N06, N12): cada paso debe probar que analizó algo, no sólo que terminó.
+# Baremo lo verifica sobre este mismo archivo con la sonda entrega.check-que-analiza.
+name: seguridad
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '17 6 * * 1'   # lunes: también se revisa lo que no cambió (CVE nuevas)
+
+permissions:
+  contents: read
+
+jobs:
+  confidencialidad:
+    name: confidencialidad (sin datos de clientes)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # La lista de términos vive en el secreto del repo, nunca en el código; el reporte no imprime términos.
+      # Sale con 2 si no hay lista o si no revisó ningún archivo: no se aprueba por no mirar.
+      - run: python herramientas/confidencialidad.py
+        env:
+          CONFIDENCIAL_TERMINOS: ${{ secrets.CONFIDENCIAL_TERMINOS }}
+
+  secretos:
+    name: secretos (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # toda la historia: un secreto borrado sigue en Git
+      # Imagen oficial con versión fija (la misma que .pre-commit-config.yaml). Se corre con el usuario del
+      # runner para que git no rechace el árbol montado por «dubious ownership».
+      - name: gitleaks sobre toda la historia
+        shell: bash             # bash con pipefail: el código de salida de gitleaks sobrevive al tee
+        run: >-
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/repo"
+          ghcr.io/gitleaks/gitleaks:v8.21.2 git /repo --redact --verbose --exit-code 1
+          2>&1 | tee gitleaks.log
+      # La acción oficial termina en verde aunque no haya escaneado un solo commit: se exige verlo en el log.
+      - name: probar que escaneó commits
+        if: always()
+        run: grep -Eq '[1-9][0-9]* commits scanned' gitleaks.log
+
+  codeql:
+    name: SAST (CodeQL)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      # CodeQL termina con error si no extrae ningún archivo del lenguaje («no source code was seen»).
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          queries: security-and-quality
+      - uses: github/codeql-action/analyze@v3
+
+  semgrep:
+    name: SAST (Semgrep, bloqueante)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    container:
+      image: semgrep/semgrep:1.183.0
+    steps:
+      - uses: actions/checkout@v4
+      # Excepción declarada (vence 2027-02-19): herramientas/verificar_reportes.py es copia literal de la
+      # plantilla común y usa xml.etree para leer el JUnit que produce este mismo CI (entrada confiable).
+      # La regla use-defused-xml-parse lo marca; el arreglo va en la plantilla, no en la copia.
+      - run: >-
+          semgrep scan --config p/default --error --metrics=off
+          --exclude herramientas/verificar_reportes.py
+          --sarif-output=semgrep.sarif --json-output=semgrep.json
+      - name: probar que analizó archivos
+        if: always()
+        run: python3 herramientas/verificar_reportes.py semgrep semgrep.json
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+  dependencias:
+    name: dependencias e IaC (Trivy, bloqueante en CRITICAL/HIGH con arreglo)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: inventario (prueba de que hay qué analizar)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          format: json
+          output: trivy.json
+          list-all-pkgs: 'true'
+          exit-code: '0'
+      - run: python3 herramientas/verificar_reportes.py trivy trivy.json
+      - name: vulnerabilidades (bloqueante)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          severity: CRITICAL,HIGH
+          ignore-unfixed: 'true'
+          trivyignores: .trivyignore     # cada excepción con fecha de vencimiento y motivo
+          exit-code: '1'
+          format: sarif
+          output: trivy.sarif
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy.sarif
+          category: trivy
+      - name: configuración e IaC
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+
+  sbom:
+    name: SBOM (syft)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: anchore/sbom-action@v0
+        with:
+          format: spdx-json
+          output-file: sbom.spdx.json
+      - run: python3 herramientas/verificar_reportes.py sbom sbom.spdx.json

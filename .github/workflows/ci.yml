@@ -1,0 +1,70 @@
+# CI (N02, N03, N08, N08b): pruebas por regla, E2E de la CLI, paridad golden y Baremo midiéndose a sí mismo.
+# Ningún job depende de otro (no hay «needs»): así ninguno puede quedar «skipped» y pasar por verde.
+# En la rama protegida todos son checks requeridos (.github/rulesets/main.json).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    name: pruebas (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pip install --no-deps -e .
+      # pytest sale con 5 si no encontró pruebas: eso ya falla. La cobertura se reporta, no es la compuerta;
+      # la compuerta es una prueba por regla (docs/reglas.md, verificado por pruebas.regla-por-prueba).
+      - run: pytest -q --junitxml=reporte.xml --cov=baremo --cov-report=xml --cov-report=term
+      - run: python3 herramientas/verificar_reportes.py pytest reporte.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pruebas-${{ matrix.python }}
+          path: |
+            reporte.xml
+            coverage.xml
+
+  autoevaluacion:
+    name: Baremo se evalúa a sí mismo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements.txt
+      - run: pip install --no-deps -e .
+      # Sale con 1 si el cumplimiento queda bajo el mínimo de baremo.yml y con 2 si la cobertura no
+      # alcanza el umbral: cualquiera de los dos detiene el pipeline.
+      - name: evaluar con el perfil del repositorio
+        run: baremo evaluar --config baremo.yml --sin-color
+        env:
+          CONFIDENCIAL_TERMINOS: ${{ secrets.CONFIDENCIAL_TERMINOS }}
+      - name: informe JSON para el historial
+        if: always()
+        run: baremo evaluar --config baremo.yml --formato json --salida informe-baremo.json
+        env:
+          CONFIDENCIAL_TERMINOS: ${{ secrets.CONFIDENCIAL_TERMINOS }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: informe-baremo
+          path: informe-baremo.json

@@ -18,6 +18,7 @@ pip-wheel-metadata/
 
 # --- Entornos virtuales ---------------------------------------------------
 .venv/
+.venv-calidad/
 venv/
 ENV/
 env/
@@ -37,6 +38,21 @@ htmlcov/
 dmypy.json
 .ruff_cache/
 .cache/
+
+# --- Dependencias de otros ecosistemas y secretos locales -----------------
+node_modules/
+.env
+.env.*
+
+# --- Reportes del CI (se publican como artefactos, no se versionan) --------
+reporte.xml
+semgrep.json
+semgrep.sarif
+trivy.json
+trivy.sarif
+sbom.spdx.json
+gitleaks.log
+informe-baremo.json
 
 # --- Editores y sistemas operativos ---------------------------------------
 .vscode/
