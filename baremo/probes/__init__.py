@@ -352,9 +352,10 @@ def registrar(id_sonda: str) -> Callable[[type[Sonda]], type[Sonda]]:
 # y para entonces el paquete ya tiene definidos el registro y las utilidades.
 from baremo.probes import ci, documentacion, entrega, seguridad, vcs  # noqa: E402,F401
 from baremo.probes import (  # noqa: E402,F401
-    arquitectura,
     analisis,
     api,
+    arquitectura,
+    confidencialidad,
     publicacion,
     pruebas,
 )

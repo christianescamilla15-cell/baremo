@@ -20,6 +20,14 @@ from baremo.model import ResultadoCheck, Veredicto
 from baremo.probes import REGISTRO, Contexto
 
 
+@pytest.fixture(autouse=True)
+def _sin_lista_real_de_terminos(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    from baremo.probes import confidencialidad
+
+    monkeypatch.delenv("CONFIDENCIAL_TERMINOS", raising=False)
+    monkeypatch.setattr(confidencialidad, "LISTA_LOCAL", tmp_path / "no-existe" / "terminos.txt")
+
+
 def construir(raiz: Path, archivos: dict[str, str | bytes]) -> Path:
     for relativa, contenido in archivos.items():
         ruta = raiz / relativa
