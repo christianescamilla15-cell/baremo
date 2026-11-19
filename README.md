@@ -1,5 +1,8 @@
 # Baremo
 
+[![ci](https://github.com/christianescamilla15-cell/baremo/actions/workflows/ci.yml/badge.svg)](https://github.com/christianescamilla15-cell/baremo/actions/workflows/ci.yml)
+[![seguridad](https://github.com/christianescamilla15-cell/baremo/actions/workflows/seguridad.yml/badge.svg)](https://github.com/christianescamilla15-cell/baremo/actions/workflows/seguridad.yml)
+
 Evaluador de madurez de ingeniería que publica **dos números** —cumplimiento y cobertura— y se
 niega a publicar el primero cuando el segundo no alcanza.
 
@@ -138,7 +141,7 @@ origen de toda la patología.
 Requisitos: Python 3.12 o superior. Única dependencia: PyYAML.
 
 ```bash
-git clone https://github.com/<tu-usuario>/baremo.git
+git clone https://github.com/christianescamilla15-cell/baremo.git
 cd baremo
 python -m venv .venv && source .venv/bin/activate
 pip install -e .
@@ -172,6 +175,9 @@ Códigos de salida, pensados para usarse como compuerta en un pipeline:
 Un pipeline que trata `2` como éxito está reintroduciendo la patología (c) por la puerta de atrás.
 
 ### Salida de consola — corrida publicable
+
+Las dos salidas de ejemplo son ilustrativas: muestran una corrida sobre un alcance de varios
+pipelines y plantillas. El catálogo real de esta versión está en [Sondas incluidas](#sondas-incluidas).
 
 ```
 baremo 0.1.0 · catálogo de sondas 6 ejes / 21 checks
@@ -258,7 +264,8 @@ calculó sobre poco más de la mitad del alcance.
 
 ### `baremo.yml`
 
-Perfil del repositorio evaluado. Se busca en la raíz del sujeto salvo que se pase `--config`.
+Perfil del repositorio evaluado. Se indica con `--config`: sin esa bandera Baremo no lee ningún
+perfil (umbral de cobertura por defecto y alcance = las rutas pasadas).
 Ejemplo completo y comentado en [`examples/baremo.yml`](examples/baremo.yml).
 
 ```yaml
@@ -323,109 +330,94 @@ Cuatro propiedades que no son negociables:
 ## Sondas incluidas
 
 Una **sonda** produce un `ResultadoCheck`: un control, con un `ResultadoSubcheck` por cada sujeto
-observado. Ahí vive la proporcionalidad — 59 pilas son 59 sub-checks, no un semáforo.
+observado. Ahí vive la proporcionalidad — 59 operaciones de una API son 59 sub-checks, no un
+semáforo.
 
-Todas las sondas incluidas leen **el repositorio**: árbol de archivos, historia de la rama y
-artefactos de configuración versionados. `baremo sondas` lista las que tu instalación registra.
+Todas las sondas incluidas leen **el repositorio**: árbol de archivos y artefactos de
+configuración versionados. `baremo sondas` lista las que tu instalación registra y
+`baremo explicar <SUB_CHECK>` explica cada sub-check. Una prueba exige que esta tabla liste
+todas las sondas registradas.
 
-| Eje | Check | Qué evalúa | Sujeto |
+| Eje | Sonda | Qué evalúa | Sujeto |
 |---|---|---|---|
-| `procedencia` | `rama-protegida` | La protección de la rama principal está declarada en un artefacto versionado. Sin artefacto legible → `NO_MEDIBLE`, no `NO_CUMPLE`. | rama |
-| `procedencia` | `propietarios-de-codigo` | Cada directorio de primer nivel con código está cubierto por una regla de propiedad. | directorio |
-| `procedencia` | `commits-con-identificador` | Tasa de commits con identificador de cambio, sobre una **ventana declarada** y contra la rama remota. | commit |
-| `procedencia` | `etiquetas-de-version` | Existen etiquetas de versión y la última alcanza la punta de la rama. | repositorio |
-| `entrega` | `pipeline-declarado` | La definición del pipeline está versionada en el repositorio. | definición |
-| `entrega` | `etapa-de-pruebas` | El pipeline ejecuta la suite; se lee el comando, no el nombre de la etapa. | pipeline |
-| `entrega` | `compuerta-antes-de-produccion` | El despliegue a producción exige aprobación o entorno protegido. | pipeline |
-| `entrega` | `secretos-por-referencia` | Ningún valor sensible aparece literal en la definición. | pipeline |
-| `seguridad` | `sast-en-la-cadena` | Hay una etapa de análisis estático con invocación real de la herramienta. | pipeline |
-| `seguridad` | `sca-en-la-cadena` | Hay análisis de composición de dependencias. | pipeline |
-| `seguridad` | `gate-bloqueante-por-severidad` | La etapa **detiene** ante severidad crítica: se lee la condición de fallo. Una etapa que sólo reporta es `NO_CUMPLE`. | pipeline |
-| `seguridad` | `dependencias-fijadas` | Cada manifiesto tiene archivo de bloqueo y es coherente con él. | manifiesto |
-| `iac` | `plantillas-versionadas` | Los recursos de infraestructura viven en plantillas dentro del repositorio. | plantilla |
-| `iac` | `etiquetas-obligatorias` | Cada recurso declara las etiquetas del perfil **en la plantilla** (no aplicadas por fuera). | recurso |
-| `iac` | `sin-secretos-en-parametros` | Ningún parámetro trae valor por defecto sensible. | parámetro |
-| `iac` | `escaneo-declarado` | Existe escaneo de IaC y su veredicto se lee del reporte emitido, no del nombre del paso. | plantilla |
-| `pruebas` | `suite-presente` | Existe suite de pruebas para cada paquete con código. | paquete |
-| `pruebas` | `suite-en-la-cadena` | La suite se ejecuta en el pipeline, no sólo en la máquina de alguien. | pipeline |
-| `pruebas` | `umbral-de-cobertura-declarado` | El umbral de cobertura de código está declarado en configuración versionada. | paquete |
-| `operacion` | `runbook-presente` | Existe runbook con procedimiento de operación. | runbook |
-| `operacion` | `enlaces-del-runbook` | Los enlaces internos del runbook **resuelven**. Enlaces externos no verificables → `NO_MEDIBLE`. | enlace |
+| Control de versiones | `vcs` | `.gitignore` con los artefactos habituales; CODEOWNERS con reglas; ningún valor con **forma** de credencial (no se marca por nombre de variable); protección de rama declarada como archivo. Sin declaración legible → `NO_MEDIBLE`. | repositorio |
+| Documentación | `documentacion` | README con caracteres **útiles** suficientes (no cuentan insignias ni URL); comando de arranque dentro de un bloque de código; registro de decisiones; licencia. | repositorio |
+| Documentación | `documentacion.arquitectura-c4` | Por nivel, un diagrama C4 **real**: bloque Mermaid `C4Context`/`C4Container`/`C4Component` o vista de Structurizr, con elementos del nivel, relaciones y sin marcadores de plantilla (`<proyecto>`, `"…"`, `AAAA-MM-DD`). Una plantilla sin adaptar no cuenta. | nivel C4 |
+| Documentación | `documentacion.adr` | Cada ADR numerado declara un estado reconocible y tiene contexto, decisión y consecuencias con contenido. | ADR |
+| Documentación | `documentacion.readme-estandar` | Insignia de CI que apunta a un flujo **existente que corre pruebas**; insignia de seguridad a uno **que escanea**; secciones de arquitectura, ejecución, pruebas, seguridad y licencia con algo verificable (enlace interno que resuelve, comando en bloque de código). | elemento del README |
+| Documentación | `documentacion.licencia` | El texto de la licencia se reconoce (huella o cabecera SPDX), lleva año y titular cuando la licencia lo exige, y cada manifiesto de paquete declara la **misma** licencia. Texto no reconocido → `NO_MEDIBLE`. | archivo y manifiesto |
+| Documentación | `documentacion.politica-de-seguridad` | `SECURITY.md` con canal **privado** de reporte (no un correo de ejemplo), plazo de respuesta y sin huecos de plantilla. | canal, plazo, adaptada |
+| API | `api.openapi-documentada` | Por cada spec OpenAPI/Swagger, cada operación con resumen, respuestas descritas y esquemas (`$ref` resueltos). El cumplimiento del check es el % de operaciones documentadas. Código con rutas HTTP y sin spec → `NO_CUMPLE`; repositorio sin API → `NO_MEDIBLE`. | operación |
+| Entrega y operación | `entrega` | Imagen de contenedor; usuario de ejecución no privilegiado (sin Dockerfile → `NO_MEDIBLE`); comprobación de salud; infraestructura como código. | repositorio |
+| Entrega y operación | `entrega.check-que-analiza` | Cada escaneo de seguridad del pipeline **prueba que analizó algo**: un paso que verifica su reporte y que puede fallar (no `continue-on-error`, no `\|\| true`), o una herramienta que falla sola con cero archivos. Sin escaneos → `NO_MEDIBLE`. | job |
+| Integración continua | `ci` | Pipeline versionado; invoca un corredor de pruebas (se lee el comando, no el nombre del paso); acciones e imágenes ancladas; sin credenciales en claro. | repositorio |
+| Pruebas | `pruebas.e2e-presente` | Cada archivo E2E ejerce el sistema **desde fuera** (navega, llama por HTTP o ejecuta el programa como proceso) y **afirma** algo. | archivo E2E |
+| Pruebas | `pruebas.paridad-golden` | Cada archivo de referencia (golden/oráculo) lo compara por igualdad una prueba que lo nombra. Un golden que nadie compara es un oráculo huérfano. | archivo golden |
+| Pruebas | `pruebas.regla-por-prueba` | Cada regla de `docs/reglas.md` apunta a pruebas que **existen** (archivo y función, Python leído por AST) y no están marcadas skip/xfail. Sin el mapa → `NO_MEDIBLE`. | regla |
+| Seguridad | `seguridad` | Política publicada; proceso de excepciones (vocabulario en dos idiomas); escaneo de dependencias; análisis estático. Nunca entra a directorios de dependencias. | repositorio |
+| Seguridad | `seguridad.confidencialidad` | Ningún archivo versionado menciona un término de la lista vetada (variable `CONFIDENCIAL_TERMINOS` o `~/.config/confidencial/terminos.txt`). La evidencia da archivo, línea y número de regla, **nunca el término**. Sin lista → `NO_MEDIBLE`. | repositorio |
 
-Nótese el patrón que se repite: **sustancia antes que nombre**. Una etapa llamada
-`security-scan` no acredita nada; acredita la invocación de la herramienta y la condición que
-detiene el pipeline. Y donde la sonda no puede afirmar, dice `NO_MEDIBLE` — que cuesta cobertura,
-no cumplimiento.
+Nótese el patrón que se repite: **sustancia antes que nombre**. Una carpeta `e2e/` no acredita
+nada; acredita una prueba que ejerce el sistema y afirma. Una insignia no acredita nada; acredita
+el flujo al que apunta. Y donde la sonda no puede afirmar, dice `NO_MEDIBLE` — que cuesta
+cobertura, no cumplimiento.
 
 ---
 
 ## Escribir tu propia sonda
 
-Una sonda es una función registrada que recibe un contexto y devuelve un `ResultadoCheck`.
+Una sonda es una clase registrada con `@registrar("<id>")` cuyo método `evaluar` recibe un
+`Contexto` y devuelve un `ResultadoCheck`. Los sub-checks se construyen con `subcheck()`, que
+**hace cumplir el contrato**: un `CUMPLE` o `NO_CUMPLE` sin evidencia, o un `NO_MEDIBLE` sin
+motivo, lanzan `ValueError`.
 
 ```python
-"""Sonda de ejemplo: cada paquete con código tiene archivo de licencia."""
+"""Sonda de ejemplo: cada paquete distribuible declara su licencia."""
 from __future__ import annotations
 
-from baremo.model import Evidencia, ResultadoCheck, ResultadoSubcheck, Veredicto
-from baremo.probes import Contexto, registrar
+from baremo.model import Evidencia, ResultadoCheck, Veredicto
+from baremo.probes import Contexto, Sonda, evidencia_de_ausencia, registrar, subcheck, sujeto_de
 
 
-@registrar(id="operacion.licencia-por-paquete",
-           titulo="Cada paquete distribuible declara su licencia",
-           eje="operacion",
-           peso=1.0)
-def licencia_por_paquete(ctx: Contexto) -> ResultadoCheck:
-    check = ResultadoCheck(
-        id="operacion.licencia-por-paquete",
-        titulo="Cada paquete distribuible declara su licencia",
-        eje="operacion",
-        peso=1.0,
-    )
+@registrar("operacion.licencia-por-paquete")
+class SondaLicenciaPorPaquete(Sonda):
+    titulo = "Cada paquete distribuible declara su licencia"
+    eje = "Operación"
+    descripciones = {"LIC_PAQUETE": "El paquete tiene archivo de licencia"}
 
-    paquetes = sorted(ctx.raiz.glob("*/pyproject.toml"))
-    if not paquetes:
-        # NO se aprueba por ausencia: no encontrar sujetos NO es cumplir.
-        check.subchecks.append(ResultadoSubcheck(
-            id="operacion.licencia-por-paquete",
-            descripcion="No se identificó ningún paquete distribuible en el árbol",
-            veredicto=Veredicto.NO_MEDIBLE,
-            motivo="sin sujetos: no hay nada que afirmar ni que negar",
-            sujeto="repositorio",
-        ))
-        return check
-
-    for manifiesto in paquetes:
-        paquete = manifiesto.parent
-        licencia = next(iter(paquete.glob("LICENSE*")), None)
-        if licencia is None:
-            check.subchecks.append(ResultadoSubcheck(
-                id="operacion.licencia-por-paquete",
-                descripcion=f"El paquete {paquete.name} no declara licencia",
-                veredicto=Veredicto.NO_CUMPLE,
-                # La evidencia de una AUSENCIA es dónde se buscó, no un extracto.
-                evidencias=[Evidencia(fuente=str(paquete),
-                                      detalle="sin archivo LICENSE* en la raíz del paquete")],
-                motivo="no existe archivo de licencia",
-                sujeto=f"paquete:{paquete.name}",
+    def evaluar(self, ctx: Contexto) -> ResultadoCheck:
+        if not ctx.repo_legible:
+            return self._sin_sujeto(ctx)          # todo NO_MEDIBLE, con motivo
+        paquetes = [m.parent for m in ctx.buscar(["*/pyproject.toml"])]
+        if not paquetes:
+            # NO se aprueba por ausencia: no encontrar sujetos NO es cumplir.
+            return self._check([subcheck(
+                "LIC_PAQUETE", self.descripciones["LIC_PAQUETE"], Veredicto.NO_MEDIBLE,
+                sujeto_de(ctx, "paquete", "*"),
+                motivo="No hay paquetes distribuibles: no hay nada que afirmar ni que negar.",
+            )])
+        resultado = []
+        for paquete in paquetes:
+            licencia = next(iter(paquete.glob("LICENSE*")), None)
+            sujeto = sujeto_de(ctx, "paquete", paquete.name)
+            if licencia is None:
+                # La evidencia de una AUSENCIA es dónde se buscó.
+                resultado.append(subcheck(
+                    "LIC_PAQUETE", self.descripciones["LIC_PAQUETE"], Veredicto.NO_CUMPLE, sujeto,
+                    [evidencia_de_ausencia(ctx, [f"{ctx.rel(paquete)}/LICENSE*"])],
+                ))
+                continue
+            primera = (ctx.leer(licencia) or "").strip().splitlines()[:1] or ["(vacío)"]
+            resultado.append(subcheck(
+                "LIC_PAQUETE", self.descripciones["LIC_PAQUETE"], Veredicto.CUMPLE, sujeto,
+                [Evidencia(fuente=ctx.rel(licencia), extracto=primera[0])],
             ))
-            continue
-
-        primera = licencia.read_text(encoding="utf-8").splitlines()[0].strip()
-        check.subchecks.append(ResultadoSubcheck(
-            id="operacion.licencia-por-paquete",
-            descripcion=f"El paquete {paquete.name} declara licencia",
-            veredicto=Veredicto.CUMPLE,
-            evidencias=[Evidencia(fuente=str(licencia), extracto=primera)],
-            sujeto=f"paquete:{paquete.name}",
-        ))
-
-    return check
+        return self._check(resultado)
 ```
 
 Un sub-check por sujeto, evidencia en todos los caminos, y ningún `CUMPLE` que provenga de no
-haber encontrado nada. `Evidencia` sin `fuente` lanza `ValueError` en construcción: es más fácil
-adjuntar la evidencia que evitarla.
+haber encontrado nada. Las sondas del catálogo viven en [`baremo/probes/`](baremo/probes/) y cada
+una tiene pruebas con sus tres caminos (`CUMPLE`, `NO_CUMPLE`, `NO_MEDIBLE`) en `tests/`.
 
 ---
 
@@ -454,6 +446,33 @@ Con la misma honestidad que le exige a sus sondas:
 - **No compara corridas de catálogos distintos.** Si cambia el conjunto de sondas, cambia el
   denominador. El reporte estampa la versión del catálogo justo para que nadie ponga las dos notas
   en la misma gráfica.
+
+---
+
+## Arquitectura
+
+Modelo C4 (contexto, contenedores y componentes) en Mermaid:
+[docs/arquitectura/README.md](docs/arquitectura/README.md). Las decisiones que explican por qué
+Baremo es como es están en [docs/adr/](docs/adr/).
+
+## Pruebas
+
+```bash
+pip install -e ".[dev]"
+pytest -q
+```
+
+La compuerta no es el porcentaje de cobertura de código sino **una prueba por regla**: el mapa
+regla de negocio → prueba está en [docs/reglas.md](docs/reglas.md) y Baremo lo verifica sobre sí
+mismo con `pruebas.regla-por-prueba`. Hay además pruebas de extremo a extremo de la CLI como
+proceso (`tests/e2e/`) y una prueba de paridad contra un informe de referencia revisado a mano
+(`tests/golden/`), con su control negativo. En el CI, Baremo se evalúa a sí mismo con
+[`baremo.yml`](baremo.yml) y falla si queda por debajo de su propio umbral.
+
+## Seguridad
+
+Cómo reportar una vulnerabilidad y qué revisa cada cambio: [SECURITY.md](SECURITY.md). Operación y
+publicación de versiones: [RUNBOOK.md](RUNBOOK.md). Historial: [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
