@@ -38,17 +38,18 @@ PATRONES_OTRAS_FORJAS: tuple[str, ...] = (
     ".gitlab-ci.yml", ".gitlab-ci.yaml", "Jenkinsfile", "azure-pipelines*.y*ml",
 )
 
-#: (herramienta, patrón sobre `uses:`, patrón sobre las líneas de `run:`)
+#: (herramienta, patrón sobre `uses:`, patrón sobre el texto de `run:`). Los patrones de `run:`
+#: aceptan también la forma de imagen con etiqueta (`…/gitleaks:v8.21.2 git /repo`).
 ESCANERES: tuple[tuple[str, re.Pattern[str] | None, re.Pattern[str] | None], ...] = (
     ("codeql", re.compile(r"github/codeql-action/analyze"), re.compile(r"\bcodeql\s+database\s+analyze\b")),
     ("semgrep", re.compile(r"(?:returntocorp|semgrep)/semgrep-action"),
-     re.compile(r"\bsemgrep\s+(?:scan|ci|--config)\b")),
+     re.compile(r"\bsemgrep(?::[\w.-]+)?\s+(?:scan|ci|--config)\b")),
     ("trivy", re.compile(r"aquasecurity/trivy-action"),
-     re.compile(r"\btrivy\s+(?:fs|filesystem|image|config|repo|rootfs|sbom|k8s)\b")),
+     re.compile(r"\btrivy(?::[\w.-]+)?\s+(?:fs|filesystem|image|config|repo|rootfs|sbom|k8s)\b")),
     ("gitleaks", re.compile(r"gitleaks/gitleaks-action"),
-     re.compile(r"\bgitleaks\s+(?:detect|git|dir|protect|stdin)\b")),
+     re.compile(r"\bgitleaks(?::[\w.-]+)?\s+(?:detect|git|dir|protect|stdin)\b")),
     ("sbom", re.compile(r"anchore/sbom-action"), re.compile(r"\bsyft\s+(?:scan\s+|packages\s+)?\S")),
-    ("grype", re.compile(r"anchore/scan-action"), re.compile(r"\bgrype\s+\S")),
+    ("grype", re.compile(r"anchore/scan-action"), re.compile(r"\bgrype(?::[\w.-]+)?\s+\S")),
     ("bandit", None, re.compile(r"\bbandit\s+-")),
     ("pip-audit", re.compile(r"pypa/gh-action-pip-audit"), re.compile(r"\bpip-audit\b")),
     ("npm-audit", None, re.compile(r"\b(?:npm|yarn|pnpm)\s+audit\b")),

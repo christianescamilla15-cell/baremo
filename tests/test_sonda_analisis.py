@@ -69,6 +69,16 @@ def test_verificacion_en_el_mismo_paso_con_grep_cuenta(repo) -> None:
     assert "grep -Eq" in check.subchecks[0].evidencias[0].extracto
 
 
+def test_escaneo_desde_una_imagen_con_etiqueta_se_reconoce(repo) -> None:
+    flujo = """jobs:
+  secretos:
+    steps:
+      - run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.21.2 git /repo 2>&1 | tee gitleaks.log
+"""
+    check = medir(ANALISIS, repo({".github/workflows/s.yml": flujo}))
+    assert por_sujeto(check) == {"demo/job:.github/workflows/s.yml#secretos": Veredicto.NO_CUMPLE}
+
+
 def test_verificacion_que_puede_no_fallar_no_cuenta(repo) -> None:
     flujo = """jobs:
   trivy:
