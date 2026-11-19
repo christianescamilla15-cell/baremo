@@ -26,7 +26,6 @@ Toda excepción lleva motivo y fecha de vencimiento; vencida, deja de aplicar.
 
 | Excepción | Dónde | Motivo | Vence |
 |---|---|---|---|
-| Semgrep no analiza `herramientas/verificar_reportes.py` | `.github/workflows/seguridad.yml` | Copia literal de la plantilla común; usa `xml.etree` para leer el JUnit que produce este mismo CI (entrada confiable). El arreglo va en la plantilla. | 2027-02-19 |
 | `nosemgrep` en dos importaciones dinámicas de `baremo/cli.py` | el propio código | Importan la constante `PAQUETE_SONDAS` y sus submódulos listados por `pkgutil`: ninguna entrada externa. | revisión en cada cambio de `cli.py` |
 
 Las excepciones de Trivy viven en `.trivyignore`, una por línea, con fecha y motivo.
