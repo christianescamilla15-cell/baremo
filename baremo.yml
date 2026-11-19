@@ -1,0 +1,11 @@
+# Perfil de Baremo evaluándose a sí mismo. Lo usa el job «Baremo se evalúa a sí mismo» del CI:
+#   baremo evaluar --config baremo.yml
+# Sale con 1 si el cumplimiento queda bajo `minimo` y con 2 si la cobertura no alcanza el umbral.
+version: 1
+
+sujetos:
+  - nombre: baremo          # nombre fijo: no depende de la carpeta donde se clone
+    ruta: .
+
+umbral_cobertura: 0.80
+minimo: 0.90
