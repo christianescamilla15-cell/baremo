@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "baremo"
-version = "0.1.0"
+version = "0.2.0"
 description = "Evaluador de madurez de ingenieria que publica DOS numeros: cumplimiento y cobertura."
 requires-python = ">=3.12"
 license = "MIT"
@@ -39,7 +39,7 @@ classifiers = [
 baremo = "baremo.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "pytest-cov>=5.0"]
 
 [tool.setuptools.packages.find]
 include = ["baremo*"]
