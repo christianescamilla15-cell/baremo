@@ -274,7 +274,8 @@ def descubrir_sondas() -> list[SondaRegistrada]:
     lo devuelva, y por ultimo un barrido de los submodulos del paquete.
     """
     try:
-        paquete = importlib.import_module(PAQUETE_SONDAS)
+        # El nombre es la constante PAQUETE_SONDAS, no una entrada del usuario.
+        paquete = importlib.import_module(PAQUETE_SONDAS)  # nosemgrep: python.lang.security.audit.non-literal-import.non-literal-import
     except Exception:  # noqa: BLE001 - sin paquete de sondas, registro vacio
         return []
 
@@ -308,7 +309,8 @@ def descubrir_sondas() -> list[SondaRegistrada]:
             if info.name.startswith("_"):
                 continue
             try:
-                modulo = importlib.import_module(f"{PAQUETE_SONDAS}.{info.name}")
+                # Submodulos del propio paquete, listados por pkgutil: no hay entrada externa.
+                modulo = importlib.import_module(f"{PAQUETE_SONDAS}.{info.name}")  # nosemgrep: python.lang.security.audit.non-literal-import.non-literal-import
             except Exception:  # noqa: BLE001
                 continue
             for atributo in vars(modulo).values():
