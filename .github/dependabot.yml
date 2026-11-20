@@ -5,8 +5,14 @@ updates:
     directory: /
     schedule: { interval: weekly }
     cooldown: { default-days: 7 }
+    groups:                       # menores y parches juntos: un PR por semana; las mayores van solas
+      pip-menores:
+        update-types: [minor, patch]
     open-pull-requests-limit: 5
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
     cooldown: { default-days: 7 }
+    groups:                       # menores y parches juntos: un PR por semana; las mayores van solas
+      acciones-menores:
+        update-types: [minor, patch]
